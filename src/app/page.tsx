@@ -15,59 +15,69 @@ export default function Home() {
       type: "module",
     });
     workerRef.current = worker;
-    worker.onmessage = (event) => {
+    worker.addEventListener("message", async (event: MessageEvent) => {
       const { status, message } = event.data;
 
-      if (status === "carregando" || status === "processando")
-        setStatus(message);
-      else if (status === "completo") {
-        setTextoTraduzido(message.text);
-        setLoading(false);
-        setStatus("Concluído");
-      } else if (status === "erro") {
-        setStatus(`Erro: ${message}`);
-        setLoading(false);
+      switch(status){
+        case "carregando":
+        case "processando":
+          setStatus(message)
+          break
+
+        case "completo":
+          setTextoTraduzido(message)
+          setLoading(false)
+          setStatus("Concluído")
+          break
+
+        case "erro":
+          setStatus(`Erro: ${message}`)
+          setLoading(false)
+          break
+
+        default:
+          console.warn(`Status desconhecido recebido do worker: ${status}`)
+          break
       }
-    };
+    });
 
     return () => {
-      worker.terminate();
-    };
-  }, []);
+      worker.terminate()
+    }
+  }, [])
 
   async function handleClick() {
-    const arquivos = inputRef.current?.files;
+    const arquivos = inputRef.current?.files
 
     if (!arquivos || arquivos.length === 0) {
-      alert("Por favor, selecione um arquivo du áudio ou de vídeo primeiro.");
-      return;
+      alert("Por favor, selecione um arquivo du áudio ou de vídeo primeiro.")
+      return
     }
 
-    if (!workerRef.current) return;
+    if (!workerRef.current) return
 
-    setLoading(true);
+    setLoading(true)
 
     try {
-      const arquivo = arquivos[0];
-      // o que é um arrayBuffer
-      const arrayBuffer = await arquivo.arrayBuffer();
+      const arquivo = arquivos[0]
+
+      const arrayBuffer = await arquivo.arrayBuffer()
 
       const audioCtx = new AudioContext({
         sampleRate: 16000,
       });
-      // o array buffer para binário?
-      const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
 
-      const dadosAudioBruto = audioBuffer.getChannelData(0);
+      const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer)
 
-      // como estou passando apenas dados
-      workerRef.current.postMessage({ audioData: dadosAudioBruto });
+      const dadosAudioBruto = audioBuffer.getChannelData(0)
+
+      workerRef.current.postMessage({ audioData: dadosAudioBruto })
     } catch (err) {
-      console.error(err);
+      console.error(err)
       setStatus(
         "Erro ao decodificar o áudio. O formato pode não ser suportado.",
-      );
-      setLoading(false);
+      )
+      setLoading(false)
     }
   }
 

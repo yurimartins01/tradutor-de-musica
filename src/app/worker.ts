@@ -1,13 +1,12 @@
-import { pipeline, env, type ProgressInfo, type AutomaticSpeechRecognitionPipeline } from "@huggingface/transformers";
+import { pipeline, env, type ProgressInfo, type AutomaticSpeechRecognitionPipeline } from "@huggingface/transformers"
 
-env.allowLocalModels = false;
+env.allowLocalModels = false
 
-// let transcritor: AutomaticSpeechRecognitionPipeline | null = null;
-let transcritor: AutomaticSpeechRecognitionPipeline | null = null;
+let transcritor: AutomaticSpeechRecognitionPipeline | null = null
 
 self.addEventListener("message", async (event: MessageEvent) => {
-  const { audioData } = event.data;
-  if (!audioData) return;
+  const { audioData } = event.data
+  if (!audioData) return
 
   try {
     if (!transcritor) {
@@ -26,11 +25,11 @@ self.addEventListener("message", async (event: MessageEvent) => {
               self.postMessage({
                 status: "carregando",
                 message: `Baixando modelo: ${Math.round(progresso.progress ?? 0)}%`,
-              });
+              })
             }
           },
         },
-      );
+      )
     }
 
     self.postMessage({ status: 'processando', message: 'A Inteligência Artificial está transcrevendo e traduzindo o seu arquivo...' })
@@ -48,9 +47,8 @@ self.addEventListener("message", async (event: MessageEvent) => {
 
     self.postMessage({ status: 'completo', message: resultado })
 
-
   } catch (err) {
     const mensagemDeErro = err instanceof Error ? err.message : 'Erro desconhecido no processamento.'
-    self.postMessage({ status: 'erro', message: mensagemDeErro });
+    self.postMessage({ status: 'erro', message: mensagemDeErro })
   }
-});
+})
